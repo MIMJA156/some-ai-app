@@ -1,10 +1,9 @@
 import { useEffect, useRef, useState } from "react";
 import "./App.css";
 
-import Latex from "react-latex";
 import ollama from 'ollama/browser'
 
-type Role = "user" | "assistant";
+type Role = "user" | "assistant" | "system";
 type MessageType = {
 	role: Role;
 	content: string;
@@ -26,24 +25,20 @@ function App(props: { models: string[] }) {
 	async function ask() {
 		setCanSubmitDisabled(true);
 
-		const message: MessageType = { role: 'user', content: prompt }
-		setConversation([...conversation, message]);
+		const userMessage: MessageType = { role: 'user', content: prompt }
+		setPrompt("");
+		setConversation([...conversation, userMessage]);
 
-		const response = await ollama.chat(
-			{ model: selectedModel, messages: [message], stream: true }
-		);
+		const response = await ollama.chat({ model: selectedModel, messages: [userMessage], stream: true });
 
-		const partial: PartialMessageType = {
-			role: "assistant",
-			content: "",
-		}
+		const partial: PartialMessageType = { role: "assistant", content: "" }
 		setActiveMessage(partial);
 
 		for await (const part of response) {
 			partial.content += part.message.content;
 			setActiveMessage({ ...partial });
 		}
-		setConversation([...conversation, message, partial]);
+		setConversation([...conversation, userMessage, partial]);
 		setActiveMessage(null);
 
 		setCanSubmitDisabled(false);
@@ -63,13 +58,15 @@ function App(props: { models: string[] }) {
 				{props.models.map(model => <option key={model} value={model}>{model}</option>)}
 			</select>
 
-			<div className="w-full h-full border-2 resize-none rounded bg-sky-300 p-0.5 flex flex-col gap-2 overflow-y-auto" ref={listRef}>
-				{conversation.map((message, index) => <Message key={index} message={message} />)}
+			<div className="w-full h-full border-2 resize-none rounded bg-emerald-200 p-1 flex flex-col gap-2 overflow-y-auto" ref={listRef}>
+				{conversation.map((message, index) => <>
+					<Message key={index} message={message} />
+				</>)}
 				{activeMessage && <Message message={activeMessage} />}
 			</div>
 
 			<div className="w-full flex justify-between items-center gap-4">
-				<input className="w-full outline-none border-2 indent-1 rounded py-1" type="text" placeholder="prompt..." onChange={(v) => { setPrompt(v.target.value) }} />
+				<input className="w-full outline-none border-2 indent-1 rounded py-1" type="text" placeholder="prompt..." onChange={(v) => { setPrompt(v.target.value); }} value={prompt} />
 				<input className="py-1 px-6 bg-sky-400 rounded cursor-pointer border-2 text-xl disabled:bg-slate-400" type="button" value="Ask" disabled={canSubmitDisabled} onClick={ask} />
 			</div>
 		</main>
@@ -87,7 +84,7 @@ function Message(props: { message: MessageType }) {
 
 			<div className="w-full min-h-9 h-fit border-2 resize-none rounded bg-sky-300 flex items-center px-1">
 				<span className="whitespace-pre-wrap">
-					<Latex displayMode={true}>{props.message.content === "" ? "EMPTY" : props.message.content}</Latex>
+					<span>{props.message.content}</span>
 				</span>
 			</div>
 

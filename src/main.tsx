@@ -12,8 +12,19 @@ try {
 	showApp = true;
 } catch (e) { }
 
+function reload() {
+	location.reload();
+}
+
 ReactDOM.createRoot(document.getElementById("root") as HTMLElement).render(
 	<React.StrictMode>
-		{showApp ? <App models={models} /> : <div>Ollama is not running (reload to re-attempt connection)</div>}
+		{showApp ?
+			<App models={models} /> :
+			<div className="flex flex-col items-center justify-center w-screen h-screen text-2xl">
+				<span>Ollama is not running. Start it and click reload.</span>
+				<button className="underline text-sky-400 hover:cursor-pointer text-3xl" onClick={reload}>
+					reload
+				</button>
+			</div>}
 	</React.StrictMode>,
 );
