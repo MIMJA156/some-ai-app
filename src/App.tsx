@@ -1,6 +1,7 @@
 import { useEffect, useRef, useState } from "react";
 import "./App.css";
 
+import Latex from "react-latex";
 import ollama from 'ollama/browser'
 
 type Role = "user" | "assistant";
@@ -85,7 +86,9 @@ function Message(props: { message: MessageType }) {
 			)}
 
 			<div className="w-full min-h-9 h-fit border-2 resize-none rounded bg-sky-300 flex items-center px-1">
-				<span className="whitespace-pre-wrap">{props.message.content === "" ? "EMPTY" : props.message.content}</span>
+				<span className="whitespace-pre-wrap">
+					<Latex displayMode={true}>{props.message.content === "" ? "EMPTY" : props.message.content}</Latex>
+				</span>
 			</div>
 
 			{props.message.role === "user" && (
